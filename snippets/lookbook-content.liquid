@@ -1,0 +1,191 @@
+{%- liquid
+  assign show_mobile_slider = true
+  assign show_desktop_slider = true
+
+  assign has_image = false
+  if lookbook.highlight_image != blank
+    assign has_image = true
+  endif
+-%}
+
+{%- style -%}
+.lookbook-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.slider-buttons {
+    margin-bottom: 1rem;
+}
+
+.lookbook-image {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.lookbook-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.lookbook-products {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  display: block;
+}
+
+.lookbook-products .card__inner {
+  height: 200px;
+}
+
+.lookbook-products .card__inner img {
+  object-fit: contain;
+  background: white;
+}
+
+.lookbook-products slider-component {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+}
+
+..lookbook-has-image .lookbook-products .slider__slide {
+  width: 100%;
+}
+
+.lookbook-products .slider--desktop .slider__slide:first-child {
+  margin-left: 0;
+}
+
+@media screen and (min-width: 750px) {
+  .lookbook-content {
+    flex-direction: row;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .lookbook-image {
+    flex: 0 0 50%;
+    max-width: 50%;
+    height: 550px;
+    margin-bottom: 0;
+  }
+
+  .lookbook-products {
+    flex: 1;
+    height: 550px;
+    display: flex;
+    align-items: center;
+  }
+
+  .lookbook-has-image .lookbook-products .slider--desktop .slider__slide {
+    width: 50%;
+  }
+
+  .lookbook-products .card__inner {
+    height: 260px;
+  }
+}
+{%- endstyle -%}
+<div class="lookbook-container page-width">
+      {%- if lookbook.title != blank -%}
+        <h2 class="{{ section.settings.heading_size }}">{{ lookbook.title }}</h2>
+      {%- endif -%}
+      
+      {%- if lookbook.description != blank -%}
+        <p>{{ lookbook.description }}</p>
+      {%- endif -%}
+
+      <div class="lookbook-content {% if has_image %} lookbook-has-image  {% endif %}">
+        <div class="lookbook-image">
+          {%- if lookbook.highlight_image != blank -%}
+            <img 
+              src="{{ lookbook.highlight_image | image_url: width: 1000 }}"
+              srcset="
+                {{ lookbook.highlight_image | image_url: width: 500 }} 500w,
+                {{ lookbook.highlight_image | image_url: width: 800 }} 800w,
+                {{ lookbook.highlight_image | image_url: width: 1000 }} 1000w
+              "
+              sizes="(min-width: 750px) 50vw, 100vw"
+              alt="{{ lookbook.title | escape }}"
+              loading="lazy"
+              width="{{ lookbook.highlight_image.width }}"
+              height="{{ lookbook.highlight_image.height }}"
+            >
+          {%- endif -%}
+        </div>
+          <div class="lookbook-products">
+
+            <slider-component class="slider-mobile-gutter {% if section.settings.full_width %} slider-component-full-width{% endif %}{% if show_mobile_slider == false %} page-width{% endif %}{% if show_desktop_slider == false and section.settings.full_width == false %} page-width-desktop{% endif %}{% if show_desktop_slider %} slider-component-desktop{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+              <ul
+                id="Slider-{{ section.id }}"
+                data-id="{{ section.id }}"
+                class="grid product-grid contains-card contains-card--product{% if settings.card_style == 'standard' %} contains-card--standard{% endif %} grid--{{ section.settings.columns_desktop }}-col-desktop{% if section.settings.collection == blank %} grid--2-col-tablet-down{% else %} grid--{{ section.settings.columns_mobile }}-col-tablet-down{% endif %}{% if show_mobile_slider or show_desktop_slider %} slider{% if show_desktop_slider %} slider--desktop{% endif %}{% if show_mobile_slider %} slider--tablet grid--peek{% endif %}{% endif %}"
+                role="list"
+                aria-label="{{ 'general.slider.name' | t }}"
+              >
+                {% assign skip_card_product_styles = false %}
+
+                {%- if lookbook.products != null -%}
+
+                    {%- for product in lookbook.products.value -%}
+                      <li
+                        id="Slide-{{ section.id }}-{{ forloop.index }}"
+                        class="grid__item{% if show_mobile_slider or show_desktop_slider %} slider__slide{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                        {% if settings.animations_reveal_on_scroll %}
+                          data-cascade
+                          style="--animation-order: {{ forloop.index }};"
+                        {% endif %}
+                      >
+                        {% render 'card-product',
+                          card_product: product
+                        %}
+                      </li>
+                    {%- endfor -%}
+              
+                {%- endif -%}
+              </ul>
+              {%- if show_mobile_slider or show_desktop_slider -%}
+                <div class="slider-buttons">
+                  <button
+                    type="button"
+                    class="slider-button slider-button--prev"
+                    name="previous"
+                    aria-label="{{ 'general.slider.previous_slide' | t }}"
+                    aria-controls="Slider-{{ section.id }}"
+                  >
+                    <span class="svg-wrapper">
+                      {{- 'icon-caret.svg' | inline_asset_content -}}
+                    </span>
+                  </button>
+                  <div class="slider-counter caption">
+                  </div>
+                  <button
+                    type="button"
+                    class="slider-button slider-button--next"
+                    name="next"
+                    aria-label="{{ 'general.slider.next_slide' | t }}"
+                    aria-controls="Slider-{{ section.id }}"
+                  >
+                    <span class="svg-wrapper">
+                      {{- 'icon-caret.svg' | inline_asset_content -}}
+                    </span>
+                  </button>
+                </div>
+              {%- endif -%}
+              
+            </slider-component>
+            </div>
+     </div>
+    </div>

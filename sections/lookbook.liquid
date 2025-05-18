@@ -1,0 +1,66 @@
+
+{%- liquid
+  assign lookbook = section.settings.lookbook
+
+  if section.settings.auto_use_metaobject == 'auto-detect' and template == 'product'
+    assign current_product = product
+    assign lookbooks = shop.metaobjects.lookbook.values
+    
+    for lookbook_temp in lookbooks
+      for lookbook_product in lookbook_temp.products.value
+        if lookbook_product.id == current_product.id
+          assign lookbook = lookbook_temp
+          break
+        endif
+      endfor
+      
+      if lookbook != section.settings.lookbook
+        break
+      endif
+    endfor
+  endif
+  
+-%}
+
+<div class="lookbook-section  color-{{ section.settings.color_schema }}" >
+    {% if lookbook %}
+      {% render 'lookbook-content', lookbook: lookbook %}
+    {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Lookbook",
+  "settings": [
+   {
+      "type": "select",
+      "id": "auto_use_metaobject",
+      "label": "Lookbook source",
+      "default": "manual-select",
+      "info": "Auto detect Lookbook will only work on PDP pages. If you want to use the same lookbook on all pages, select Manual Select Lookbook.",
+      "options": [
+        {
+          "value": "auto-detect",
+          "label": "Auto Detect Lookbook (PDP Only)"
+        },
+        {
+          "value": "manual-select",
+          "label": "Manual Select Lookbook"
+        }
+      ]
+    },
+    {
+      "type": "metaobject",
+      "id": "lookbook",
+      "label": "Select Lookbook",
+      "metaobject_type": "lookbook"
+    } 
+  ],
+  "presets": [
+    {
+      "name": "Lookbook",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
